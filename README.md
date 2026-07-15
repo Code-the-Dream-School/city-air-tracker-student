@@ -1,0 +1,219 @@
+# City Air Tracker
+
+This repo contains a Code the Dream-friendly batch ETL project that:
+
+1. Geocodes global cities to lat/lon
+2. Pulls OpenWeather Air Pollution historical data
+3. Transforms PostgreSQL-backed raw response records into a gold dataset
+4. Writes the gold dataset to PostgreSQL and can optionally export Parquet locally or publish the same Parquet artifact to Azure Blob Storage
+5. Serves a React dashboard backed by a Python API over PostgreSQL data
+
+The pipeline now uses DB-first gold persistence by default, with PostgreSQL as the primary gold-data target and Parquet export as an explicit optional setting.
+Azure Blob publishing is also optional and can be tested locally through Azurite in Docker Compose.
+City configuration, geocoding cache, and raw extract persistence are also moving into PostgreSQL as runtime state.
+The same PostgreSQL runtime path can target either local Docker/Postgres or managed Azure Database for PostgreSQL through environment configuration.
+
+## Main run guide
+
+Use `docs/setup/run_and_debug_guide.md` for:
+
+- local Python installation
+- Python library installation
+- local non-Docker `.env.local` configuration
+- local VS Code debugging
+- Docker Compose installation
+- Docker Compose configuration, launch, and verification
+
+Use `docs/setup/local_postgresql_first_workflow.md` for the consolidated local PostgreSQL-first workflow:
+
+- schema bootstrap
+- city seeding
+- pipeline run commands
+- PostgreSQL verification queries
+- DB-native test commands
+
+Use `docs/setup/azure_postgresql_configuration.md` for managed Azure Database for PostgreSQL configuration guidance.
+Use `docs/setup/environment_profiles_guide.md` to keep separate local and Azure env files without overwriting your normal Docker settings.
+Use `docs/setup/dashboard_azure_deployment.md` for the GitHub Actions to Azure App Service dashboard deployment flow.
+Use `bash scripts/generate_env_profiles.sh` to create `.env.local` and `.env.azure` from the tracked templates in `configs/env/`.
+Use `ENV_FILE=.env.azure ...` when you want to run the app, migrations, or Docker Compose against the Azure profile.
+
+## Run modes
+
+This repo currently supports three practical run modes:
+
+1. Local without Docker
+   Uses `.env.local` with local filesystem paths and a local PostgreSQL instance.
+2. Local with Docker
+   Uses `.env.local` with Docker Compose, container paths, local Postgres, and Azurite.
+3. Cloud-connected
+   Uses `ENV_FILE=.env.azure` so the app or local containers point at Azure-backed resources such as Azure Database for PostgreSQL and Azure Blob Storage.
+
+Important:
+
+- the cloud-connected mode changes which resources the app talks to
+- it does not by itself deploy the app into Azure
+
+## One-command local environment setup
+
+If you want a quick local Python setup, use the bootstrap script for your OS.
+
+These scripts:
+
+- create `.venv` in the project root if missing
+- upgrade `pip`, `setuptools`, and `wheel`
+- install dependencies from `requirements.txt`
+- install the local pipeline package in editable mode for module-based execution
+
+### WSL, Linux, or macOS
+
+```bash
+./scripts/setup_venv.sh
+```
+
+If you hit a permission error:
+
+```bash
+bash scripts/setup_venv.sh
+```
+
+### Windows PowerShell
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup_venv.ps1
+```
+
+After script setup, activate the environment:
+
+- WSL, Linux, macOS: `source .venv/bin/activate`
+- Windows PowerShell: `.venv\Scripts\Activate.ps1`
+
+Run the pipeline locally with the package entrypoint:
+
+```bash
+python -m pipeline.cli --source openweather --history-hours 72
+```
+
+This is the preferred local run path because it matches the packaged production-style entrypoint used by the pipeline service.
+
+## PostgreSQL-first local workflow
+
+For the shortest path to a working local DB-first run, start here:
+
+- `docs/setup/local_postgresql_first_workflow.md`
+
+Quick sequence:
+
+1. `alembic upgrade head`
+2. `python -m pipeline.cli --seed-cities`
+3. `python -m pipeline.cli --source openweather --history-hours 72`
+4. verify `pipeline_runs` and `air_pollution_gold` in PostgreSQL
+
+Optional Blob flow for local testing:
+
+1. set `WRITE_GOLD_AZURE_BLOB=1`
+2. keep the Azurite connection string from `.env.local`
+3. run `docker compose up --build`
+4. open the browser explorer at `http://localhost:8081`
+5. confirm the blob exists under container `gold` at `exports/air_pollution_gold.parquet`
+
+To target real Azure Blob Storage instead of Azurite, keep the same
+`WRITE_GOLD_AZURE_BLOB`, `AZURE_STORAGE_CONNECTION_STRING`,
+`AZURE_BLOB_CONTAINER`, and `AZURE_BLOB_PATH` settings but replace the local
+connection string with your production Azure values. See
+[`docs/setup/azure_blob_storage_configuration.md`](docs/setup/azure_blob_storage_configuration.md)
+for local-vs-production examples.
+
+## PostgreSQL schema bootstrap
+
+The PostgreSQL-first migration path uses Alembic for schema versioning.
+
+Apply the latest schema locally with:
+
+```bash
+alembic upgrade head
+```
+
+If you are using Docker Compose, run the dedicated migration service:
+
+```bash
+docker compose run --rm migrate
+```
+
+This creates or upgrades the PostgreSQL schema before pipeline services depend on it.
+
+## Configure cities
+
+The pipeline now treats PostgreSQL as the runtime source of truth for cities by default.
+
+`CITIES_FILE` remains the seed/import input used to populate the `cities` table.
+
+Expected CSV columns:
+
+```csv
+city,country_code,state
+```
+
+Example:
+
+```csv
+Toronto,CA,
+Paris,FR,
+Lagos,NG,
+Sydney,AU,NSW
+```
+
+Notes:
+
+- `country_code` is required for reliable global geocoding
+- `state` is optional for most countries
+
+### Custom city files
+
+You can point the seed/import workflow to a different city CSV by changing `CITIES_FILE`.
+
+Examples:
+
+```dotenv
+# Local Python
+CITIES_FILE=configs/cities_local.csv
+
+# Docker Compose
+CITIES_FILE=/app/configs/cities_production.csv
+```
+
+For Docker Compose, custom city files must live inside `./configs/` on the host because that directory is mounted into the containers as `/app/configs`.
+
+### Common city-file issues
+
+- `FileNotFoundError` during city seed/import usually means `CITIES_FILE` is misspelled or points to the wrong place
+- If Docker cannot find a custom city file, make sure the file exists under `./configs/`
+- If city seed/import creates no rows, confirm the CSV has at least one data row below the header
+- If geocoding fails for a city, verify the `country_code`
+
+### Seed cities into PostgreSQL
+
+To populate the `cities` table from the configured CSV:
+
+```bash
+python -m pipeline.cli --seed-cities
+```
+
+Normal pipeline execution reads active cities from PostgreSQL when `CITIES_SOURCE=postgres`.
+
+## Additional docs
+
+Browse `docs/README.md` for the full categorized index.
+
+- `docs/setup/local_postgresql_first_workflow.md`
+- `docs/setup/run_and_debug_guide.md`
+- `docs/setup/docker_and_compose_walkthrough.md`
+- `docs/setup/github_quality_gates_setup.md`
+- `docs/collaboration/github_feature_branch_pr_guide.md`
+- `docs/collaboration/pr_review_best_practices.md`
+- `docs/collaboration/what_is_a_data_pipeline.md`
+- `docs/architecture/architecture.md`
+- `docs/architecture/data_flow_diagram.md`
+- `docs/architecture/postgresql_schema_design.md`
+- `docs/reference/data_dictionary.md`
+- `docs/reference/openweather_environmental_api_fields_reference.md`
