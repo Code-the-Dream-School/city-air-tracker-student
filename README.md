@@ -50,18 +50,4 @@ git remote -v
 
 ## Additional docs
 
-Browse `docs/README.md` for the full categorized index.
-
-- `docs/milestones/week0.md`
-- `docs/milestones/week1.md`
-- `docs/setup/local_postgresql_first_workflow.md`
-- `docs/setup/run_and_debug_guide.md`
-- `docs/setup/github_quality_gates_setup.md`
-- `docs/collaboration/github_feature_branch_pr_guide.md`
-- `docs/collaboration/pr_review_best_practices.md`
-- `docs/collaboration/what_is_a_data_pipeline.md`
-- `docs/architecture/architecture.md`
-- `docs/architecture/data_flow_diagram.md`
-- `docs/architecture/postgresql_schema_design.md`
-- `docs/reference/data_dictionary.md`
-- `docs/reference/openweather_environmental_api_fields_reference.md`
+Browse [Docs table of Contents](./docs/docs_toc.md) for the full categorized index.

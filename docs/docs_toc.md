@@ -6,15 +6,6 @@ The `docs/` folder is organized by purpose so contributors can find the right st
 
 Use these docs when you want to install, run, debug, or validate the project locally.
 
-- `setup/local_postgresql_first_workflow.md`
-- `setup/run_and_debug_guide.md`
-- `setup/fresh_start_pipeline_bringup.md`
-- `setup/postgresql_migrations_guide.md`
-- `setup/environment_profiles_guide.md`
-- `setup/docker_and_compose_walkthrough.md`
-- `setup/github_quality_gates_setup.md`
-- `setup/dashboard_azure_deployment.md`
-
 ## Collaboration
 
 Use these docs when onboarding to the repo, learning the workflow, reviewing pull requests, or reading team-facing project background material.
@@ -28,17 +19,16 @@ Use these docs when onboarding to the repo, learning the workflow, reviewing pul
 
 Use these docs when you want to understand system structure, data flow, or dashboard design.
 
-- `architecture/runtime_architecture_guide.md`
-- `architecture/runtime_architecture_guide.pdf`
-- `architecture/architecture.md`
-- `architecture/data_flow_diagram.md`
-- `architecture/function_call_flows.md`
-- `architecture/postgresql_schema_design.md`
-
 ## Reference
 
 Use these docs for field-level details, schemas, and API artifacts.
 
-- `reference/data_dictionary.md`
+- `reference/openweather_api_overview.md`
 - `reference/openweather_environmental_api_fields_reference.md`
-- `reference/openweather-air-pollution.postman_collection.json`
+
+## Milestones
+
+Student-led deliverables and milestones setup for a 6-week course:
+[Sprint 0](./milestones/sprint0.md)
+[Sprint 1](./milestones/sprint1.md)
+[Sprint 2](./milestones/sprint2.md)
