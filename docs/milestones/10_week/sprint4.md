@@ -69,18 +69,7 @@ Package the code and its dependencies in a form Lambda can run, and document how
 
 Deploy the Lambda to AWS and confirm it works when invoked by hand. Document the exact steps used to deploy it and the check used to confirm it wrote to the database, so a teammate can repeat them. Give the Lambda only the permissions it needs.
 
-#### 4. EventBridge schedule and CloudWatch logs — 5 points
-
-Schedule the Lambda with EventBridge (see [scheduling a run](../../tools_and_prior_coverage.md#scheduling-a-run)), and use CloudWatch to see what happened (see [logs and alarms](../../tools_and_prior_coverage.md#logs-and-alarms)). Document:
-
-- the schedule and why the team chose that frequency
-- how a scheduled run differs from a manual invocation, if at all
-- where to find the logs for a run, and what a healthy run and a failed run each look like
-- how to pause or remove the schedule
-
-Confirm the Lambda ran on its own by checking CloudWatch and the database, not only by trusting the schedule. Keep the schedule modest to stay within the free limits.
-
-#### 5. Deployment notes and runtime configuration — 2 points
+#### 4. Deployment notes and runtime configuration — 2 points
 
 Write down everything a teammate needs to reproduce or change the deployment:
 
@@ -91,15 +80,26 @@ Write down everything a teammate needs to reproduce or change the deployment:
 
 ### Should
 
-#### 6. LLM enrichment as a second Lambda — 5 points
+#### 5. LLM enrichment as a second Lambda — 5 points
 
 Deploy the enrichment stage from Sprint 3 as its own Lambda, so ingest and enrichment can run and fail independently. Document how the enrichment Lambda is triggered, such as by its own schedule, and how it decides which records to enrich. Keep its idempotent behavior from Sprint 3.
 
-#### 7. A basic CloudWatch alarm — 3 points
+#### 6. A basic CloudWatch alarm — 3 points
 
 Create at least one CloudWatch alarm that tells the team when something is wrong, such as when the Lambda reports errors. Document what the alarm watches, what threshold it uses, and who is notified.
 
 ### Could
+
+#### 7. EventBridge schedule and CloudWatch logs — 5 points
+
+Schedule the Lambda with EventBridge (see [scheduling a run](../../tools_and_prior_coverage.md#scheduling-a-run)), and use CloudWatch to see what happened (see [logs and alarms](../../tools_and_prior_coverage.md#logs-and-alarms)). Document:
+
+- the schedule and why the team chose that frequency
+- how a scheduled run differs from a manual invocation, if at all
+- where to find the logs for a run, and what a healthy run and a failed run each look like
+- how to pause or remove the schedule
+
+Confirm the Lambda ran on its own by checking CloudWatch and the database, not only by trusting the schedule. Keep the schedule modest to stay within the free limits.
 
 #### 8. CI/CD deploy via GitHub Actions — 5 points
 
@@ -116,7 +116,7 @@ By the end of Sprint 4, submit:
 5. The deployment notes and runtime configuration.
 6. If completed, the enrichment Lambda, CloudWatch alarm, and GitHub Actions workflow.
 
-**Total: 20 core story points, or 28 with the Should deliverables (33 with the Could)**
+**Total: 15 core story points, or 23 with the Should deliverables (33 with the Could)**
 
 ## End-of-sprint checkpoint
 
